@@ -5,49 +5,35 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Smartsheet Admin Documentation Generator</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             padding: 20px;
         }
-        
+
         .container {
             max-width: 1200px;
             margin: 0 auto;
             background: white;
             border-radius: 12px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
             overflow: hidden;
         }
-        
+
         .header {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             padding: 30px;
             text-align: center;
         }
-        
-        .header h1 {
-            font-size: 28px;
-            margin-bottom: 10px;
-        }
-        
-        .header p {
-            font-size: 14px;
-            opacity: 0.9;
-        }
-        
-        .content {
-            padding: 30px;
-        }
-        
+        .header h1 { font-size: 28px; margin-bottom: 10px; }
+        .header p { font-size: 14px; opacity: 0.9; }
+
+        .content { padding: 30px; }
+
         .input-section {
             margin-bottom: 30px;
             padding: 20px;
@@ -55,11 +41,9 @@
             border-radius: 8px;
             border-left: 4px solid #667eea;
         }
-        
-        .input-group {
-            margin-bottom: 15px;
-        }
-        
+
+        .input-group { margin-bottom: 15px; }
+
         label {
             display: block;
             margin-bottom: 8px;
@@ -67,8 +51,14 @@
             color: #333;
             font-size: 14px;
         }
-        
-        input[type="text"], textarea {
+        .label-hint {
+            font-weight: 400;
+            color: #888;
+            font-size: 12px;
+            margin-left: 6px;
+        }
+
+        input[type="text"], input[type="password"], textarea {
             width: 100%;
             padding: 10px 12px;
             border: 1px solid #ddd;
@@ -77,24 +67,15 @@
             font-size: 13px;
             transition: border-color 0.3s;
         }
-        
-        input[type="text"]:focus, textarea:focus {
+        input[type="text"]:focus, input[type="password"]:focus, textarea:focus {
             outline: none;
             border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            box-shadow: 0 0 0 3px rgba(102,126,234,0.1);
         }
-        
-        textarea {
-            resize: vertical;
-            min-height: 80px;
-        }
-        
-        .button-group {
-            display: flex;
-            gap: 10px;
-            margin-top: 20px;
-        }
-        
+        textarea { resize: vertical; min-height: 60px; }
+
+        .button-group { display: flex; gap: 10px; margin-top: 20px; }
+
         button {
             flex: 1;
             padding: 12px 20px;
@@ -105,23 +86,15 @@
             cursor: pointer;
             transition: all 0.3s;
         }
-        
         .btn-primary {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
         }
-        
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
-        }
-        
-        .btn-primary:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            transform: none;
-        }
-        
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(102,126,234,0.3); }
+        .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+        .btn-secondary { background: #f0f2f5; color: #333; }
+        .btn-secondary:hover { background: #e4e6eb; transform: translateY(-2px); }
+
         .status {
             margin-top: 15px;
             padding: 12px;
@@ -129,362 +102,599 @@
             font-size: 13px;
             display: none;
         }
-        
-        .status.info {
-            display: block;
-            background: #e7f3ff;
-            color: #0050b3;
-            border-left: 3px solid #0050b3;
-        }
-        
-        .status.loading {
-            display: block;
-            background: #fff7e6;
-            color: #ad6800;
-            border-left: 3px solid #ad6800;
-        }
-        
-        .status.error {
-            display: block;
-            background: #fff1f0;
-            color: #a4373a;
-            border-left: 3px solid #a4373a;
-        }
-        
-        .status.success {
-            display: block;
-            background: #f6ffed;
-            color: #274916;
-            border-left: 3px solid #274916;
-        }
-        
-        .output-section {
-            margin-top: 30px;
-            display: none;
-        }
-        
-        .output-section.active {
-            display: block;
-        }
-        
-        .documentation {
+        .status.info    { display: block; background: #e7f3ff; color: #0050b3; border-left: 3px solid #0050b3; }
+        .status.loading { display: block; background: #fff7e6; color: #ad6800; border-left: 3px solid #ad6800; }
+        .status.error   { display: block; background: #fff1f0; color: #a4373a; border-left: 3px solid #a4373a; }
+        .status.success { display: block; background: #f6ffed; color: #274916; border-left: 3px solid #274916; }
+
+        .output-section { margin-top: 30px; display: none; }
+        .output-section.active { display: block; }
+
+        .export-buttons { display: flex; gap: 10px; margin-top: 20px; }
+
+        /* Documentation display styles */
+        .doc-wrapper {
             background: #f8f9fa;
             border-radius: 8px;
-            padding: 20px;
-            max-height: 600px;
+            padding: 24px;
+            max-height: 700px;
             overflow-y: auto;
-            font-size: 13px;
-            line-height: 1.6;
-            font-family: 'Courier New', monospace;
         }
-        
-        .doc-section {
-            margin-bottom: 25px;
-            padding-bottom: 15px;
-            border-bottom: 1px solid #ddd;
+
+        .overview-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+            gap: 12px;
+            margin-bottom: 24px;
         }
-        
-        .doc-section:last-child {
-            border-bottom: none;
+        .stat-box {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 14px;
+            border-radius: 8px;
+            text-align: center;
         }
-        
-        .doc-title {
-            font-size: 15px;
+        .stat-box .number { font-size: 26px; font-weight: 700; }
+        .stat-box .label { font-size: 11px; opacity: 0.9; margin-top: 3px; }
+
+        .folder-title {
+            font-size: 22px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 4px;
+        }
+        .folder-meta {
+            font-size: 12px;
+            color: #888;
+            margin-bottom: 20px;
+        }
+
+        .sheet-card {
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 16px;
+        }
+        .sheet-card h3 {
+            color: #764ba2;
+            font-size: 16px;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 8px;
+            margin-bottom: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .sheet-link {
+            font-size: 11px;
+            font-weight: 400;
+            color: #667eea;
+            text-decoration: none;
+        }
+        .sheet-link:hover { text-decoration: underline; }
+
+        .meta-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 8px;
+            margin-bottom: 14px;
+        }
+        .meta-item {
+            background: #f8f9fa;
+            padding: 8px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+        .meta-item strong {
+            display: block;
+            color: #888;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 2px;
+        }
+
+        .section-label {
             font-weight: 700;
             color: #667eea;
-            margin-bottom: 10px;
             text-transform: uppercase;
+            font-size: 11px;
             letter-spacing: 1px;
+            margin: 14px 0 8px;
         }
-        
-        .doc-content {
-            color: #333;
-        }
-        
-        .sheet-item {
-            background: white;
-            border-left: 3px solid #764ba2;
-            padding: 12px;
-            margin: 8px 0;
-            border-radius: 3px;
-        }
-        
-        .sheet-name {
+
+        table { width: 100%; border-collapse: collapse; font-size: 12px; margin-bottom: 8px; }
+        th { background: #667eea; color: white; padding: 7px 10px; text-align: left; font-weight: 600; }
+        td { padding: 6px 10px; border-bottom: 1px solid #f0f0f0; vertical-align: top; }
+        tr:last-child td { border-bottom: none; }
+        tr:nth-child(even) td { background: #fafafa; }
+
+        .type-badge {
+            display: inline-block;
+            padding: 1px 7px;
+            border-radius: 10px;
+            font-size: 10px;
             font-weight: 600;
+            background: #e8f0fe;
+            color: #4a5ea8;
+        }
+        .primary-badge {
+            display: inline-block;
+            padding: 1px 7px;
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: 600;
+            background: #fff3cd;
+            color: #856404;
+            margin-left: 4px;
+        }
+        .formula-code {
+            font-family: 'Courier New', monospace;
+            font-size: 11px;
             color: #764ba2;
-            margin-bottom: 5px;
+            background: #f3f0ff;
+            padding: 1px 5px;
+            border-radius: 3px;
+            word-break: break-all;
         }
-        
-        .export-buttons {
-            display: flex;
-            gap: 10px;
-            margin-top: 20px;
+
+        .automation-item {
+            background: #f8f9fa;
+            border-left: 3px solid #667eea;
+            padding: 10px 12px;
+            margin: 6px 0;
+            border-radius: 0 4px 4px 0;
         }
-        
-        .btn-secondary {
-            background: #f0f2f5;
-            color: #333;
-            flex: 1;
+        .automation-name { font-weight: 600; font-size: 13px; color: #333; }
+        .automation-detail { font-size: 11px; color: #666; margin-top: 3px; }
+
+        .subfolder-list { list-style: none; padding: 0; }
+        .subfolder-list li {
+            padding: 6px 10px;
+            background: #f8f9fa;
+            border-radius: 4px;
+            margin: 4px 0;
+            font-size: 13px;
+            color: #555;
         }
-        
-        .btn-secondary:hover {
-            background: #e4e6eb;
-            transform: translateY(-2px);
-        }
-        
+
+        .no-data { color: #aaa; font-style: italic; font-size: 12px; padding: 6px 0; }
+
         .loader {
             display: inline-block;
-            width: 16px;
-            height: 16px;
+            width: 14px; height: 14px;
             border: 2px solid #f3f3f3;
             border-top: 2px solid #667eea;
             border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin-right: 8px;
+            animation: spin 0.8s linear infinite;
+            margin-right: 7px;
             vertical-align: middle;
         }
-        
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
+        @keyframes spin { to { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>📊 Smartsheet Admin Documentation</h1>
-            <p>Analyze sheets, formulas, automations, and workflows in your Smartsheet folder</p>
+            <h1>&#128202; Smartsheet Admin Documentation</h1>
+            <p>Analyze sheets, columns, formulas, summary fields, and automations directly from the Smartsheet API</p>
         </div>
-        
+
         <div class="content">
             <div class="input-section">
                 <div class="input-group">
-                    <label for="apiKey">Anthropic API Key:</label>
-                    <input type="password" id="apiKey" placeholder="sk-ant-..." oninput="saveApiKey()">
+                    <label for="apiToken">
+                        Smartsheet API Token
+                        <span class="label-hint">Account menu &rarr; Personal Settings &rarr; API Access &rarr; Generate new access token</span>
+                    </label>
+                    <input type="password" id="apiToken" placeholder="Your Smartsheet API token" oninput="saveToken()">
                 </div>
 
                 <div class="input-group">
-                    <label for="folderUrl">Smartsheet Folder URL or ID:</label>
-                    <input type="text" id="folderUrl" placeholder="https://app.smartsheet.com/folders/... or folder ID" value="grPh426FjV53GxWcrRcwf2J62jJG5CqC2cf853J1">
+                    <label for="folderUrl">Smartsheet Folder URL or ID</label>
+                    <input type="text" id="folderUrl" placeholder="https://app.smartsheet.com/folders/... or numeric folder ID">
                 </div>
-                
+
                 <div class="input-group">
-                    <label for="documentationNotes">Additional Notes (optional):</label>
-                    <textarea id="documentationNotes" placeholder="Add any specific focus areas, naming conventions, or other details for the documentation..."></textarea>
+                    <label for="documentationNotes">Additional Notes <span class="label-hint">optional — included in the markdown export</span></label>
+                    <textarea id="documentationNotes" placeholder="Naming conventions, special workflows, context for future admins..."></textarea>
                 </div>
-                
+
                 <div class="button-group">
                     <button class="btn-primary" id="generateBtn" onclick="generateDocumentation()">
                         <span id="btnText">Generate Documentation</span>
                     </button>
                 </div>
-                
+
                 <div class="status" id="status"></div>
             </div>
-            
+
             <div class="output-section" id="outputSection">
-                <h2 style="margin-bottom: 15px; color: #333;">Generated Documentation</h2>
-                <div class="documentation" id="documentation"></div>
-                
+                <h2 style="margin-bottom:15px;color:#333;">Generated Documentation</h2>
+                <div class="doc-wrapper" id="docDisplay"></div>
                 <div class="export-buttons">
-                    <button class="btn-secondary" onclick="downloadAsMarkdown()">📥 Download as Markdown</button>
-                    <button class="btn-secondary" onclick="downloadAsText()">📄 Download as Text</button>
-                    <button class="btn-secondary" onclick="copyToClipboard()">📋 Copy to Clipboard</button>
+                    <button class="btn-secondary" onclick="downloadAsMarkdown()">&#128229; Download as Markdown</button>
+                    <button class="btn-secondary" onclick="downloadAsText()">&#128196; Download as Text</button>
+                    <button class="btn-secondary" onclick="copyToClipboard()">&#128203; Copy to Clipboard</button>
                 </div>
             </div>
         </div>
     </div>
 
     <script>
-        let generatedDoc = '';
+        const API_BASE = 'https://api.smartsheet.com/2.0';
+        let generatedMarkdown = '';
 
-        // Persist API key in localStorage so user doesn't re-enter each session
-        function saveApiKey() {
-            const key = document.getElementById('apiKey').value;
-            if (key) localStorage.setItem('anthropic_api_key', key);
+        function saveToken() {
+            const t = document.getElementById('apiToken').value;
+            if (t) localStorage.setItem('ss_api_token', t);
         }
 
         window.addEventListener('DOMContentLoaded', () => {
-            const saved = localStorage.getItem('anthropic_api_key');
-            if (saved) document.getElementById('apiKey').value = saved;
+            const saved = localStorage.getItem('ss_api_token');
+            if (saved) document.getElementById('apiToken').value = saved;
         });
 
-        function updateStatus(message, type = 'info') {
-            const statusEl = document.getElementById('status');
-            statusEl.textContent = message;
-            statusEl.className = `status ${type}`;
+        function updateStatus(msg, type = 'info') {
+            const el = document.getElementById('status');
+            el.textContent = msg;
+            el.className = `status ${type}`;
         }
 
-        function showLoading(loading) {
+        function showLoading(on) {
             const btn = document.getElementById('generateBtn');
-            const btnText = document.getElementById('btnText');
-            btn.disabled = loading;
-            btnText.innerHTML = loading ? '<span class="loader"></span>Generating...' : 'Generate Documentation';
+            const txt = document.getElementById('btnText');
+            btn.disabled = on;
+            txt.innerHTML = on ? '<span class="loader"></span>Generating...' : 'Generate Documentation';
+        }
+
+        function parseFolderId(input) {
+            const match = input.match(/\/folders\/([^\/\?#]+)/);
+            return match ? match[1] : input.trim();
+        }
+
+        async function ssGet(token, path) {
+            const res = await fetch(`${API_BASE}${path}`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (!res.ok) {
+                const err = await res.json().catch(() => ({}));
+                throw new Error(err.message || `API error ${res.status}`);
+            }
+            return res.json();
+        }
+
+        function fmtDate(iso) {
+            if (!iso) return '—';
+            return new Date(iso).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+        }
+
+        function fmtColType(col) {
+            if (col.systemColumnType) return col.systemColumnType.replace(/_/g, ' ');
+            return (col.type || 'TEXT_NUMBER').replace(/_/g, ' ');
+        }
+
+        function triggerLabel(a) {
+            if (!a.triggerFields) return '';
+            const t = a.triggerFields.type || '';
+            const map = {
+                CHANGE_CELL: 'When a cell changes',
+                ROWADDED: 'When a row is added',
+                ROW_ADDED: 'When a row is added',
+                SCHEDULE: 'On a schedule',
+                APPROVAL_REQUEST: 'Approval request',
+            };
+            return map[t] || t.replace(/_/g, ' ');
+        }
+
+        function actionLabel(a) {
+            if (!a.action) return '';
+            const t = a.action.type || '';
+            const map = {
+                NOTIFICATION_ACTION: 'Send notification',
+                APPROVAL_REQUEST_ACTION: 'Request approval',
+                MOVE_ROW_ACTION: 'Move row',
+                COPY_ROW_ACTION: 'Copy row',
+                LOCK_ROW_ACTION: 'Lock row',
+                DELETE_ROW_ACTION: 'Delete row',
+                UPDATE_CELL_ACTION: 'Update cell',
+                CLEAR_CELL_ACTION: 'Clear cell',
+            };
+            return map[t] || t.replace(/_/g, ' ');
         }
 
         async function generateDocumentation() {
-            const folderUrl = document.getElementById('folderUrl').value.trim();
+            const token = document.getElementById('apiToken').value.trim();
+            const folderInput = document.getElementById('folderUrl').value.trim();
             const notes = document.getElementById('documentationNotes').value.trim();
-            const apiKey = document.getElementById('apiKey').value.trim();
 
-            if (!apiKey) {
-                updateStatus('Please enter your Anthropic API key', 'error');
-                return;
-            }
+            if (!token) { updateStatus('Please enter your Smartsheet API token.', 'error'); return; }
+            if (!folderInput) { updateStatus('Please enter a folder URL or ID.', 'error'); return; }
 
-            if (!folderUrl) {
-                updateStatus('Please enter a Smartsheet folder URL or ID', 'error');
-                return;
-            }
-
+            const folderId = parseFolderId(folderInput);
             showLoading(true);
-            updateStatus('Connecting to Smartsheet and analyzing folder...', 'loading');
 
             try {
-                // Call Claude API with Smartsheet MCP
-                const response = await fetch("https://api.anthropic.com/v1/messages", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "x-api-key": apiKey,
-                        "anthropic-version": "2023-06-01",
-                        "anthropic-dangerous-direct-browser-access": "true",
-                    },
-                    body: JSON.stringify({
-                        model: "claude-sonnet-4-6",
-                        max_tokens: 4000,
-                        messages: [
-                            {
-                                role: "user",
-                                content: `You are a Smartsheet solution administrator. I need comprehensive documentation for a Smartsheet folder at ID: ${folderUrl}
+                updateStatus('Fetching folder contents...', 'loading');
+                const folder = await ssGet(token, `/folders/${folderId}`);
 
-Please use the Smartsheet MCP tools to:
-1. Browse the folder contents to find all sheets
-2. For each sheet, get detailed information including:
-   - Sheet name and description
-   - Column names and types
-   - Any formulas used (especially summary formulas)
-   - Sheet summary fields
-   - Any visible automations or workflows
-3. Compile this into professional admin documentation
+                const sheets = folder.sheets || [];
+                const reports = folder.reports || [];
+                const sights = folder.sights || [];
+                const subfolders = folder.folders || [];
 
-${notes ? `Additional focus areas: ${notes}` : ''}
-
-Format the documentation with clear sections for:
-- Overview (folder contents summary)
-- Each sheet's details (data structure, formulas, automations)
-- Summary fields and metrics
-- Key workflows and automations
-- Best practices for managing these sheets
-- Maintenance notes
-
-Make it thorough and well-organized for administrators.`
-                            }
-                        ],
-                        mcp_servers: [
-                            {
-                                "type": "url",
-                                "url": "https://mcp.smartsheet.com",
-                                "name": "smartsheet-mcp"
-                            }
-                        ]
-                    })
-                });
-
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(errorData.error?.message || `API error: ${response.status}`);
-                }
-
-                const data = await response.json();
-                
-                // Extract text from response
-                let documentation = '';
-                if (data.content && Array.isArray(data.content)) {
-                    for (const block of data.content) {
-                        if (block.type === 'text') {
-                            documentation += block.text;
-                        }
+                const sheetDetails = [];
+                for (let i = 0; i < sheets.length; i++) {
+                    const s = sheets[i];
+                    updateStatus(`Fetching sheet ${i + 1} of ${sheets.length}: ${s.name}...`, 'loading');
+                    try {
+                        const [detail, summary, automations] = await Promise.all([
+                            ssGet(token, `/sheets/${s.id}?include=columnType,ownerInfo,crossSheetReferences`),
+                            ssGet(token, `/sheets/${s.id}/summary`).catch(() => ({ fields: [] })),
+                            ssGet(token, `/sheets/${s.id}/automations`).catch(() => ({ data: [] })),
+                        ]);
+                        sheetDetails.push({
+                            ...detail,
+                            summaryFields: summary.fields || [],
+                            automations: automations.data || [],
+                        });
+                    } catch (e) {
+                        sheetDetails.push({ id: s.id, name: s.name, loadError: e.message });
                     }
                 }
 
-                if (!documentation) {
-                    throw new Error('No documentation generated from API response');
-                }
+                const data = { folder, sheets: sheetDetails, reports, sights, subfolders, notes };
 
-                generatedDoc = documentation;
-                displayDocumentation(documentation);
-                showLoading(false);
-                updateStatus('Documentation generated successfully!', 'success');
+                generatedMarkdown = buildMarkdown(data);
+                renderHtml(data);
 
-            } catch (error) {
-                console.error('Error:', error);
                 showLoading(false);
-                updateStatus(`Error: ${error.message}`, 'error');
+                updateStatus(`Documentation generated — ${sheets.length} sheet(s) analyzed.`, 'success');
+                document.getElementById('outputSection').classList.add('active');
+
+            } catch (err) {
+                showLoading(false);
+                updateStatus(`Error: ${err.message}`, 'error');
             }
         }
 
-        function displayDocumentation(doc) {
-            const outputSection = document.getElementById('outputSection');
-            const docElement = document.getElementById('documentation');
-            
-            // Format for display
-            const formatted = doc
-                .split('\n')
-                .map(line => {
-                    // Style headers
-                    if (line.match(/^#+\s/)) {
-                        const level = line.match(/^#+/)[0].length;
-                        return `<div class="doc-title">${line.replace(/^#+\s/, '')}</div>`;
-                    }
-                    return line;
-                })
-                .join('\n');
-            
-            docElement.innerHTML = `<pre style="white-space: pre-wrap; word-wrap: break-word;">${escapeHtml(doc)}</pre>`;
-            outputSection.classList.add('active');
+        /* ── HTML RENDERER ─────────────────────────────────────────── */
+        function renderHtml(data) {
+            const { folder, sheets, reports, sights, subfolders } = data;
+            let html = '';
+
+            html += `<div class="folder-title">&#128193; ${esc(folder.name || 'Unnamed Folder')}</div>`;
+            html += `<div class="folder-meta">Folder ID: ${folder.id} &nbsp;|&nbsp; Generated: ${new Date().toLocaleDateString('en-US', {year:'numeric',month:'long',day:'numeric'})}</div>`;
+
+            html += `<div class="overview-stats">
+                <div class="stat-box"><div class="number">${sheets.length}</div><div class="label">Sheets</div></div>
+                <div class="stat-box"><div class="number">${reports.length}</div><div class="label">Reports</div></div>
+                <div class="stat-box"><div class="number">${sights.length}</div><div class="label">Dashboards</div></div>
+                <div class="stat-box"><div class="number">${subfolders.length}</div><div class="label">Subfolders</div></div>
+            </div>`;
+
+            if (subfolders.length) {
+                html += `<div class="section-label">Subfolders</div><ul class="subfolder-list">`;
+                subfolders.forEach(f => { html += `<li>&#128193; ${esc(f.name)}</li>`; });
+                html += `</ul>`;
+            }
+
+            if (reports.length) {
+                html += `<div class="section-label">Reports</div><ul class="subfolder-list">`;
+                reports.forEach(r => { html += `<li>&#128202; ${esc(r.name)}</li>`; });
+                html += `</ul>`;
+            }
+
+            sheets.forEach(sheet => {
+                html += `<div class="sheet-card">`;
+                const link = sheet.permalink ? `<a class="sheet-link" href="${esc(sheet.permalink)}" target="_blank">&#128279; Open</a>` : '';
+                html += `<h3>&#128196; ${esc(sheet.name)} ${link}</h3>`;
+
+                if (sheet.loadError) {
+                    html += `<p class="no-data">Could not load sheet details: ${esc(sheet.loadError)}</p></div>`;
+                    return;
+                }
+
+                html += `<div class="meta-grid">
+                    <div class="meta-item"><strong>Sheet ID</strong>${sheet.id}</div>
+                    <div class="meta-item"><strong>Rows</strong>${(sheet.totalRowCount || 0).toLocaleString()}</div>
+                    <div class="meta-item"><strong>Columns</strong>${(sheet.columns || []).length}</div>
+                    <div class="meta-item"><strong>Owner</strong>${esc(sheet.owner || '—')}</div>
+                    <div class="meta-item"><strong>Created</strong>${fmtDate(sheet.createdAt)}</div>
+                    <div class="meta-item"><strong>Modified</strong>${fmtDate(sheet.modifiedAt)}</div>
+                </div>`;
+
+                // Columns
+                const cols = sheet.columns || [];
+                html += `<div class="section-label">Columns (${cols.length})</div>`;
+                if (cols.length) {
+                    html += `<table><thead><tr><th>#</th><th>Column Name</th><th>Type</th><th>Formula / Options</th></tr></thead><tbody>`;
+                    cols.forEach((col, i) => {
+                        const primary = col.primary ? `<span class="primary-badge">Primary</span>` : '';
+                        const type = `<span class="type-badge">${fmtColType(col)}</span>`;
+                        let extra = '';
+                        if (col.formula) extra = `<span class="formula-code">${esc(col.formula)}</span>`;
+                        else if (col.options && col.options.length) extra = col.options.map(o => `<span class="type-badge">${esc(o)}</span>`).join(' ');
+                        html += `<tr><td>${i + 1}</td><td>${esc(col.title)}${primary}</td><td>${type}</td><td>${extra}</td></tr>`;
+                    });
+                    html += `</tbody></table>`;
+                } else {
+                    html += `<p class="no-data">No columns found.</p>`;
+                }
+
+                // Summary fields
+                const sumFields = sheet.summaryFields || [];
+                html += `<div class="section-label">Sheet Summary Fields (${sumFields.length})</div>`;
+                if (sumFields.length) {
+                    html += `<table><thead><tr><th>Field</th><th>Type</th><th>Formula / Value</th></tr></thead><tbody>`;
+                    sumFields.forEach(f => {
+                        const val = f.formula
+                            ? `<span class="formula-code">${esc(f.formula)}</span>`
+                            : esc(f.displayValue != null ? String(f.displayValue) : (f.value != null ? String(f.value) : '—'));
+                        html += `<tr><td>${esc(f.title)}</td><td><span class="type-badge">${esc((f.type || '').replace(/_/g,' '))}</span></td><td>${val}</td></tr>`;
+                    });
+                    html += `</tbody></table>`;
+                } else {
+                    html += `<p class="no-data">No summary fields.</p>`;
+                }
+
+                // Automations
+                const autos = sheet.automations || [];
+                html += `<div class="section-label">Automations (${autos.length})</div>`;
+                if (autos.length) {
+                    autos.forEach(a => {
+                        const enabled = a.enabled === false ? ' <span style="color:#aaa;font-weight:400;font-size:11px;">(disabled)</span>' : '';
+                        const trigger = triggerLabel(a);
+                        const action = actionLabel(a);
+                        html += `<div class="automation-item">
+                            <div class="automation-name">${esc(a.name || 'Unnamed')}${enabled}</div>
+                            <div class="automation-detail">${trigger ? `Trigger: ${esc(trigger)}` : ''} ${trigger && action ? '&rarr;' : ''} ${action ? `Action: ${esc(action)}` : ''}</div>
+                        </div>`;
+                    });
+                } else {
+                    html += `<p class="no-data">No automations found (or plan does not expose them via API).</p>`;
+                }
+
+                html += `</div>`;
+            });
+
+            if (data.notes) {
+                html += `<div class="sheet-card"><h3>&#128221; Admin Notes</h3><p style="font-size:13px;color:#444;white-space:pre-wrap;">${esc(data.notes)}</p></div>`;
+            }
+
+            document.getElementById('docDisplay').innerHTML = html;
         }
 
-        function escapeHtml(text) {
-            const map = {
-                '&': '&amp;',
-                '<': '&lt;',
-                '>': '&gt;',
-                '"': '&quot;',
-                "'": '&#039;'
-            };
-            return text.replace(/[&<>"']/g, m => map[m]);
+        /* ── MARKDOWN BUILDER ──────────────────────────────────────── */
+        function buildMarkdown(data) {
+            const { folder, sheets, reports, sights, subfolders, notes } = data;
+            const now = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+            let md = '';
+
+            md += `# Smartsheet Admin Documentation\n`;
+            md += `**Folder:** ${folder.name || 'Unnamed'} (ID: ${folder.id})\n`;
+            md += `**Generated:** ${now}\n\n`;
+            md += `---\n\n`;
+
+            md += `## Overview\n`;
+            md += `| | Count |\n|---|---|\n`;
+            md += `| Sheets | ${sheets.length} |\n`;
+            md += `| Reports | ${reports.length} |\n`;
+            md += `| Dashboards | ${sights.length} |\n`;
+            md += `| Subfolders | ${subfolders.length} |\n\n`;
+
+            if (subfolders.length) {
+                md += `### Subfolders\n`;
+                subfolders.forEach(f => { md += `- ${f.name}\n`; });
+                md += '\n';
+            }
+            if (reports.length) {
+                md += `### Reports\n`;
+                reports.forEach(r => { md += `- ${r.name}\n`; });
+                md += '\n';
+            }
+
+            md += `---\n\n## Sheets\n\n`;
+
+            sheets.forEach(sheet => {
+                md += `### ${sheet.name}\n\n`;
+
+                if (sheet.loadError) {
+                    md += `> Could not load sheet details: ${sheet.loadError}\n\n`;
+                    return;
+                }
+
+                md += `| Field | Value |\n|---|---|\n`;
+                md += `| Sheet ID | ${sheet.id} |\n`;
+                md += `| Rows | ${(sheet.totalRowCount || 0).toLocaleString()} |\n`;
+                md += `| Columns | ${(sheet.columns || []).length} |\n`;
+                md += `| Owner | ${sheet.owner || '—'} |\n`;
+                md += `| Created | ${fmtDate(sheet.createdAt)} |\n`;
+                md += `| Modified | ${fmtDate(sheet.modifiedAt)} |\n`;
+                if (sheet.permalink) md += `| Link | ${sheet.permalink} |\n`;
+                md += '\n';
+
+                const cols = sheet.columns || [];
+                md += `#### Columns (${cols.length})\n\n`;
+                if (cols.length) {
+                    md += `| # | Name | Type | Primary | Formula / Options |\n|---|---|---|---|---|\n`;
+                    cols.forEach((col, i) => {
+                        let extra = '';
+                        if (col.formula) extra = col.formula;
+                        else if (col.options && col.options.length) extra = col.options.join(', ');
+                        md += `| ${i + 1} | ${col.title} | ${fmtColType(col)} | ${col.primary ? 'Yes' : ''} | ${extra} |\n`;
+                    });
+                    md += '\n';
+                } else {
+                    md += `_No columns found._\n\n`;
+                }
+
+                const sumFields = sheet.summaryFields || [];
+                md += `#### Sheet Summary Fields (${sumFields.length})\n\n`;
+                if (sumFields.length) {
+                    md += `| Field | Type | Formula / Value |\n|---|---|---|\n`;
+                    sumFields.forEach(f => {
+                        const val = f.formula ? f.formula : (f.displayValue != null ? String(f.displayValue) : (f.value != null ? String(f.value) : ''));
+                        md += `| ${f.title} | ${(f.type || '').replace(/_/g,' ')} | ${val} |\n`;
+                    });
+                    md += '\n';
+                } else {
+                    md += `_No summary fields._\n\n`;
+                }
+
+                const autos = sheet.automations || [];
+                md += `#### Automations (${autos.length})\n\n`;
+                if (autos.length) {
+                    autos.forEach(a => {
+                        const trigger = triggerLabel(a);
+                        const action = actionLabel(a);
+                        const enabled = a.enabled === false ? ' [disabled]' : '';
+                        md += `- **${a.name || 'Unnamed'}**${enabled}`;
+                        if (trigger || action) md += `: ${[trigger, action].filter(Boolean).join(' → ')}`;
+                        md += '\n';
+                    });
+                    md += '\n';
+                } else {
+                    md += `_No automations (or not exposed by plan)._\n\n`;
+                }
+
+                md += `---\n\n`;
+            });
+
+            if (notes) {
+                md += `## Admin Notes\n\n${notes}\n\n`;
+            }
+
+            return md;
+        }
+
+        /* ── EXPORT ────────────────────────────────────────────────── */
+        function downloadAs(content, filename, mime) {
+            const a = document.createElement('a');
+            a.href = `data:${mime};charset=utf-8,` + encodeURIComponent(content);
+            a.download = filename;
+            a.click();
         }
 
         function downloadAsMarkdown() {
-            const element = document.createElement('a');
-            element.setAttribute('href', 'data:text/markdown;charset=utf-8,' + encodeURIComponent(generatedDoc));
-            element.setAttribute('download', 'smartsheet_admin_documentation.md');
-            element.style.display = 'none';
-            document.body.appendChild(element);
-            element.click();
-            document.body.removeChild(element);
-            updateStatus('Documentation downloaded as Markdown', 'success');
+            downloadAs(generatedMarkdown, 'smartsheet_admin_documentation.md', 'text/markdown');
+            updateStatus('Downloaded as Markdown.', 'success');
         }
 
         function downloadAsText() {
-            const element = document.createElement('a');
-            element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(generatedDoc));
-            element.setAttribute('download', 'smartsheet_admin_documentation.txt');
-            element.style.display = 'none';
-            document.body.appendChild(element);
-            element.click();
-            document.body.removeChild(element);
-            updateStatus('Documentation downloaded as Text', 'success');
+            downloadAs(generatedMarkdown, 'smartsheet_admin_documentation.txt', 'text/plain');
+            updateStatus('Downloaded as Text.', 'success');
         }
 
         function copyToClipboard() {
-            navigator.clipboard.writeText(generatedDoc).then(() => {
-                updateStatus('Documentation copied to clipboard!', 'success');
-            }).catch(err => {
-                updateStatus('Failed to copy to clipboard', 'error');
-            });
+            navigator.clipboard.writeText(generatedMarkdown)
+                .then(() => updateStatus('Copied to clipboard!', 'success'))
+                .catch(() => updateStatus('Could not copy to clipboard.', 'error'));
+        }
+
+        function esc(str) {
+            return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;');
         }
     </script>
 </body>
