@@ -292,8 +292,8 @@
                 </div>
 
                 <div class="input-group">
-                    <label for="folderUrl">Smartsheet Folder URL or ID</label>
-                    <input type="text" id="folderUrl" placeholder="https://app.smartsheet.com/folders/... or numeric folder ID">
+                    <label for="folderUrl">Smartsheet Workspace URL or ID</label>
+                    <input type="text" id="folderUrl" placeholder="https://app.smartsheet.com/workspaces/... or numeric workspace ID">
                 </div>
 
                 <div class="input-group">
@@ -350,7 +350,7 @@
         }
 
         function parseFolderId(input) {
-            const match = input.match(/\/folders\/([^\/\?#]+)/);
+            const match = input.match(/\/(?:folders|workspaces)\/([^\/\?#]+)/);
             return match ? match[1] : input.trim();
         }
 
@@ -418,8 +418,8 @@
             showLoading(true);
 
             try {
-                updateStatus('Fetching folder contents...', 'loading');
-                const folder = await ssGet(token, `/folders/${folderId}`);
+                updateStatus('Fetching workspace contents...', 'loading');
+                const folder = await ssGet(token, `/workspaces/${folderId}`);
 
                 const sheets = folder.sheets || [];
                 const reports = folder.reports || [];
