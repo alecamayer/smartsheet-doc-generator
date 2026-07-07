@@ -260,6 +260,11 @@
         <div class="content">
             <div class="input-section">
                 <div class="input-group">
+                    <label for="apiKey">Anthropic API Key:</label>
+                    <input type="password" id="apiKey" placeholder="sk-ant-..." oninput="saveApiKey()">
+                </div>
+
+                <div class="input-group">
                     <label for="folderUrl">Smartsheet Folder URL or ID:</label>
                     <input type="text" id="folderUrl" placeholder="https://app.smartsheet.com/folders/... or folder ID" value="grPh426FjV53GxWcrRcwf2J62jJG5CqC2cf853J1">
                 </div>
@@ -294,6 +299,17 @@
     <script>
         let generatedDoc = '';
 
+        // Persist API key in localStorage so user doesn't re-enter each session
+        function saveApiKey() {
+            const key = document.getElementById('apiKey').value;
+            if (key) localStorage.setItem('anthropic_api_key', key);
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            const saved = localStorage.getItem('anthropic_api_key');
+            if (saved) document.getElementById('apiKey').value = saved;
+        });
+
         function updateStatus(message, type = 'info') {
             const statusEl = document.getElementById('status');
             statusEl.textContent = message;
@@ -310,7 +326,13 @@
         async function generateDocumentation() {
             const folderUrl = document.getElementById('folderUrl').value.trim();
             const notes = document.getElementById('documentationNotes').value.trim();
-            
+            const apiKey = document.getElementById('apiKey').value.trim();
+
+            if (!apiKey) {
+                updateStatus('Please enter your Anthropic API key', 'error');
+                return;
+            }
+
             if (!folderUrl) {
                 updateStatus('Please enter a Smartsheet folder URL or ID', 'error');
                 return;
@@ -325,6 +347,9 @@
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
+                        "x-api-key": apiKey,
+                        "anthropic-version": "2023-06-01",
+                        "anthropic-dangerous-direct-browser-access": "true",
                     },
                     body: JSON.stringify({
                         model: "claude-sonnet-4-6",
