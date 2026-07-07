@@ -406,53 +406,65 @@
             return map[t] || t.replace(/_/g, ' ');
         }
 
+        // Recursively collect all sheets, reports, sights from a folder node
+        async function collectContents(token, node, path, allSheets, allReports, allSights, allFolders) {
+            const folderPath = path ? `${path} / ${node.name}` : node.name;
+
+            (node.reports || []).forEach(r => allReports.push({ ...r, folderPath }));
+            (node.sights || []).forEach(s => allSights.push({ ...s, folderPath }));
+            (node.sheets || []).forEach(s => allSheets.push({ ...s, folderPath }));
+
+            for (const sub of (node.folders || [])) {
+                allFolders.push({ name: sub.name, folderPath });
+                const detail = await ssGet(token, `/folders/${sub.id}`);
+                await collectContents(token, detail, folderPath, allSheets, allReports, allSights, allFolders);
+            }
+        }
+
+        async function fetchSheetDetail(token, s, index, total) {
+            updateStatus(`Fetching sheet ${index + 1} of ${total}: ${s.name}...`, 'loading');
+            try {
+                const [detail, summary, automations] = await Promise.all([
+                    ssGet(token, `/sheets/${s.id}?include=columnType,ownerInfo,crossSheetReferences`),
+                    ssGet(token, `/sheets/${s.id}/summary`).catch(() => ({ fields: [] })),
+                    ssGet(token, `/sheets/${s.id}/automations`).catch(() => ({ data: [] })),
+                ]);
+                return { ...detail, folderPath: s.folderPath, summaryFields: summary.fields || [], automations: automations.data || [] };
+            } catch (e) {
+                return { id: s.id, name: s.name, folderPath: s.folderPath, loadError: e.message };
+            }
+        }
+
         async function generateDocumentation() {
             const token = document.getElementById('apiToken').value.trim();
             const folderInput = document.getElementById('folderUrl').value.trim();
             const notes = document.getElementById('documentationNotes').value.trim();
 
             if (!token) { updateStatus('Please enter your Smartsheet API token.', 'error'); return; }
-            if (!folderInput) { updateStatus('Please enter a folder URL or ID.', 'error'); return; }
+            if (!folderInput) { updateStatus('Please enter a workspace URL or ID.', 'error'); return; }
 
-            const folderId = parseFolderId(folderInput);
+            const workspaceId = parseFolderId(folderInput);
             showLoading(true);
 
             try {
                 updateStatus('Fetching workspace contents...', 'loading');
-                const folder = await ssGet(token, `/workspaces/${folderId}`);
+                const workspace = await ssGet(token, `/workspaces/${workspaceId}`);
 
-                const sheets = folder.sheets || [];
-                const reports = folder.reports || [];
-                const sights = folder.sights || [];
-                const subfolders = folder.folders || [];
+                const allSheets = [], allReports = [], allSights = [], allFolders = [];
+                await collectContents(token, workspace, '', allSheets, allReports, allSights, allFolders);
 
                 const sheetDetails = [];
-                for (let i = 0; i < sheets.length; i++) {
-                    const s = sheets[i];
-                    updateStatus(`Fetching sheet ${i + 1} of ${sheets.length}: ${s.name}...`, 'loading');
-                    try {
-                        const [detail, summary, automations] = await Promise.all([
-                            ssGet(token, `/sheets/${s.id}?include=columnType,ownerInfo,crossSheetReferences`),
-                            ssGet(token, `/sheets/${s.id}/summary`).catch(() => ({ fields: [] })),
-                            ssGet(token, `/sheets/${s.id}/automations`).catch(() => ({ data: [] })),
-                        ]);
-                        sheetDetails.push({
-                            ...detail,
-                            summaryFields: summary.fields || [],
-                            automations: automations.data || [],
-                        });
-                    } catch (e) {
-                        sheetDetails.push({ id: s.id, name: s.name, loadError: e.message });
-                    }
+                for (let i = 0; i < allSheets.length; i++) {
+                    sheetDetails.push(await fetchSheetDetail(token, allSheets[i], i, allSheets.length));
                 }
 
-                const data = { folder, sheets: sheetDetails, reports, sights, subfolders, notes };
+                const data = { workspace, sheets: sheetDetails, reports: allReports, sights: allSights, folders: allFolders, notes };
 
                 generatedMarkdown = buildMarkdown(data);
                 renderHtml(data);
 
                 showLoading(false);
-                updateStatus(`Documentation generated — ${sheets.length} sheet(s) analyzed.`, 'success');
+                updateStatus(`Documentation generated — ${sheetDetails.length} sheet(s), ${allReports.length} report(s), ${allSights.length} dashboard(s) across ${allFolders.length} subfolder(s).`, 'success');
                 document.getElementById('outputSection').classList.add('active');
 
             } catch (err) {
@@ -463,28 +475,34 @@
 
         /* ── HTML RENDERER ─────────────────────────────────────────── */
         function renderHtml(data) {
-            const { folder, sheets, reports, sights, subfolders } = data;
+            const { workspace, sheets, reports, sights, folders } = data;
             let html = '';
 
-            html += `<div class="folder-title">&#128193; ${esc(folder.name || 'Unnamed Folder')}</div>`;
-            html += `<div class="folder-meta">Folder ID: ${folder.id} &nbsp;|&nbsp; Generated: ${new Date().toLocaleDateString('en-US', {year:'numeric',month:'long',day:'numeric'})}</div>`;
+            html += `<div class="folder-title">&#128218; ${esc(workspace.name || 'Unnamed Workspace')}</div>`;
+            html += `<div class="folder-meta">Workspace ID: ${workspace.id} &nbsp;|&nbsp; Generated: ${new Date().toLocaleDateString('en-US', {year:'numeric',month:'long',day:'numeric'})}</div>`;
 
             html += `<div class="overview-stats">
                 <div class="stat-box"><div class="number">${sheets.length}</div><div class="label">Sheets</div></div>
                 <div class="stat-box"><div class="number">${reports.length}</div><div class="label">Reports</div></div>
                 <div class="stat-box"><div class="number">${sights.length}</div><div class="label">Dashboards</div></div>
-                <div class="stat-box"><div class="number">${subfolders.length}</div><div class="label">Subfolders</div></div>
+                <div class="stat-box"><div class="number">${folders.length}</div><div class="label">Subfolders</div></div>
             </div>`;
 
-            if (subfolders.length) {
-                html += `<div class="section-label">Subfolders</div><ul class="subfolder-list">`;
-                subfolders.forEach(f => { html += `<li>&#128193; ${esc(f.name)}</li>`; });
+            if (folders.length) {
+                html += `<div class="section-label">Folder Structure</div><ul class="subfolder-list">`;
+                folders.forEach(f => { html += `<li>&#128193; ${esc(f.folderPath)} / ${esc(f.name)}</li>`; });
                 html += `</ul>`;
             }
 
             if (reports.length) {
                 html += `<div class="section-label">Reports</div><ul class="subfolder-list">`;
-                reports.forEach(r => { html += `<li>&#128202; ${esc(r.name)}</li>`; });
+                reports.forEach(r => { html += `<li>&#128202; ${esc(r.name)} <span style="color:#aaa;font-size:11px;">— ${esc(r.folderPath)}</span></li>`; });
+                html += `</ul>`;
+            }
+
+            if (sights.length) {
+                html += `<div class="section-label">Dashboards</div><ul class="subfolder-list">`;
+                sights.forEach(s => { html += `<li>&#127760; ${esc(s.name)} <span style="color:#aaa;font-size:11px;">— ${esc(s.folderPath)}</span></li>`; });
                 html += `</ul>`;
             }
 
@@ -492,6 +510,7 @@
                 html += `<div class="sheet-card">`;
                 const link = sheet.permalink ? `<a class="sheet-link" href="${esc(sheet.permalink)}" target="_blank">&#128279; Open</a>` : '';
                 html += `<h3>&#128196; ${esc(sheet.name)} ${link}</h3>`;
+                if (sheet.folderPath) html += `<div style="font-size:11px;color:#888;margin-bottom:12px;">&#128193; ${esc(sheet.folderPath)}</div>`;
 
                 if (sheet.loadError) {
                     html += `<p class="no-data">Could not load sheet details: ${esc(sheet.loadError)}</p></div>`;
@@ -570,12 +589,12 @@
 
         /* ── MARKDOWN BUILDER ──────────────────────────────────────── */
         function buildMarkdown(data) {
-            const { folder, sheets, reports, sights, subfolders, notes } = data;
+            const { workspace, sheets, reports, sights, folders, notes } = data;
             const now = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
             let md = '';
 
             md += `# Smartsheet Admin Documentation\n`;
-            md += `**Folder:** ${folder.name || 'Unnamed'} (ID: ${folder.id})\n`;
+            md += `**Workspace:** ${workspace.name || 'Unnamed'} (ID: ${workspace.id})\n`;
             md += `**Generated:** ${now}\n\n`;
             md += `---\n\n`;
 
@@ -584,23 +603,30 @@
             md += `| Sheets | ${sheets.length} |\n`;
             md += `| Reports | ${reports.length} |\n`;
             md += `| Dashboards | ${sights.length} |\n`;
-            md += `| Subfolders | ${subfolders.length} |\n\n`;
+            md += `| Subfolders | ${folders.length} |\n\n`;
 
-            if (subfolders.length) {
-                md += `### Subfolders\n`;
-                subfolders.forEach(f => { md += `- ${f.name}\n`; });
+            if (folders.length) {
+                md += `### Folder Structure\n`;
+                folders.forEach(f => { md += `- ${f.folderPath} / ${f.name}\n`; });
                 md += '\n';
             }
             if (reports.length) {
                 md += `### Reports\n`;
-                reports.forEach(r => { md += `- ${r.name}\n`; });
+                reports.forEach(r => { md += `- **${r.name}** — ${r.folderPath}\n`; });
+                md += '\n';
+            }
+            if (sights.length) {
+                md += `### Dashboards\n`;
+                sights.forEach(s => { md += `- **${s.name}** — ${s.folderPath}\n`; });
                 md += '\n';
             }
 
             md += `---\n\n## Sheets\n\n`;
 
             sheets.forEach(sheet => {
-                md += `### ${sheet.name}\n\n`;
+                md += `### ${sheet.name}\n`;
+                if (sheet.folderPath) md += `_Location: ${sheet.folderPath}_\n`;
+                md += '\n';
 
                 if (sheet.loadError) {
                     md += `> Could not load sheet details: ${sheet.loadError}\n\n`;
