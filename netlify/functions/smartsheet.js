@@ -15,8 +15,8 @@ exports.handler = async (event) => {
         return { statusCode: 400, body: 'Missing token or path' };
     }
 
-    // Restrict to Smartsheet API paths only
-    if (!/^\/[a-zA-Z0-9\/_-]+$/.test(path)) {
+    // Restrict to Smartsheet API paths only (allow query strings)
+    if (!/^\/[a-zA-Z0-9\/_\-?=,&.]+$/.test(path)) {
         return { statusCode: 400, body: 'Invalid path' };
     }
 
